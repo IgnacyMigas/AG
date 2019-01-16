@@ -5,6 +5,7 @@
 #include <map>
 #include <ga/ga.h>
 #include <ctime>
+#include <algorithm>
 
 #define INSTANTIATE_REAL_GENOME
 #include <ga/GARealGenome.h>
@@ -17,9 +18,11 @@ float pmut   = 1.0;
 float pcross = 0.0;
 
 const int MAX_NR = 1003;
-float v_min=51, v_max=-1;
+float v_min=51, v_max=-1, p_max=1;
 float prenty[MAX_NR];
 int len=0;
+
+float odchylenie_max=0;
 
 float objective(GAGenome &);
 
@@ -35,6 +38,7 @@ float Comparator(const GAGenome&, const GAGenome&);
 int main(int argc, char *argv[])
 {
 	float v;
+	float m1=0, m2=0, m3=0;
 	unsigned seed = time(0);
 	
 	ifstream we("prety.txt");
@@ -43,6 +47,19 @@ int main(int argc, char *argv[])
 		we>>v;
 		we>>v;
 		prenty[len++] = v;
+		if (v>m1) {
+			m3=m2;
+			m2=m1;
+			m1=v;
+		}
+		else if (v>m2){
+			m3=m2;
+			m2=v;
+		}
+		else if (v>m3){
+			m3=v;
+		}
+		
 		if (v<v_min) v_min = v;
 		if (v>v_max) v_max = v;
 	}
@@ -50,6 +67,8 @@ int main(int argc, char *argv[])
 	
 	we.close();
 
+	
+	p_max = pole(m1, m2, m3)/2.;
 
   GAListGenome<int> genome(Objective);
   genome.initializer(::Initializer);
@@ -83,6 +102,9 @@ int main(int argc, char *argv[])
   int cnt = 0;
   licz(genome, cnt, od);
   cout<< "Odchylenie=" << od << ", ilosc=" << cnt << endl;
+  cout<< "Odchylenie max=" << odchylenie_max << endl;
+  cout<<m1<<endl<<m2<<endl<<m3<<endl;
+  cout<<"pole"<<pole(m1, m2, m3)/2.<<endl<<len/3.<<endl;
   save_output(genome);
   cout << ga.statistics() << "\n";	
 
@@ -94,30 +116,8 @@ float Objective(GAGenome & g)
 	float odchylenie = 0;
 	int cnt = 0;
 	licz(g, cnt, odchylenie);
-/*  GAListGenome<int> & genome = (GAListGenome<int> &)g;
-  float sum=0, odchylenie=0;
-  int cnt = 0;
-  float tab[MAX_NR/3];
-  if(genome.head()) {
-    for(int i=0; i<len/3; i++) {
-      float a = prenty[*genome.current()];
-      float b = prenty[*genome.next()];
-      float c = prenty[*genome.next()];
-      if (a+b>c && a+c>b && b+c>a){
-		  tab[cnt]=pole(a, b, c);
-		  sum+=tab[cnt];
-		  cnt++;
-	  }
-    }
-	float avg = sum/cnt;
-	sum = 0;
-	for(int i=0; i<cnt; i++) {
-		sum += pow((tab[i]-avg), 2);
-	}
-	odchylenie=sqrt(sum/cnt);
-  }//*/
   
-  float fitness = (len-cnt)+(odchylenie/(v_max+v_min)/2);
+  float fitness = (len/3.-cnt)+(odchylenie/p_max*(len/3.));
   if (fitness != fitness)
 	  return len*100;
   return fitness;
@@ -222,6 +222,10 @@ void licz(GAGenome & g, int& cnt, float& odchylenie){
 		sum += pow((tab[i]-avg), 2);
 	}
 	odchylenie=sqrt(sum/cnt);
+	if (odchylenie>odchylenie_max) {
+		cout<<"o="<< odchylenie<< "c=" <<cnt<<"max="<<*max_element(tab , tab + cnt)<<"min="<<*min_element(tab, tab+cnt)<<endl;
+		odchylenie_max=odchylenie;
+	}
   }
 }
 
