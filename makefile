@@ -21,7 +21,7 @@ all:
 	make clean; make ex ; make run
 
 ex:
-	cd galib247/ga; $(MAKE) lib
+	cd galib247; $(MAKE) lib
 	$(CXX) $(CXXFLAGS) $(EXEC).cpp $(OBJ) $(INC_DIRS) $(LIB_DIRS) -o $(EXEC) -lga -lm
 
 clean:
