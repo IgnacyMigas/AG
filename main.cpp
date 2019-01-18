@@ -13,7 +13,7 @@
 using namespace std;
 
 int popsize  = 100;
-int ngen     = 1000;
+int ngen     = 1500;
 float pmut   = 1.0;
 float pcross = 0.0;
 
@@ -78,35 +78,23 @@ int main(int argc, char *argv[])
   GASteadyStateGA ga(genome);
   ga.minimize();
   ga.pReplacement(1.0);
-  ga.populationSize(100);
-  ga.nGenerations(1000);
-  ga.pMutation(1.0);
-  ga.pCrossover(0.0);
+  ga.populationSize(popsize);
+  ga.nGenerations(ngen);
+  ga.pMutation(pmut);
+  ga.pCrossover(pcross);
   ga.selectScores(GAStatistics::AllScores);
   ga.parameters(argc, argv);
-  cout << "initializing..."; cout.flush();
   ga.initialize(seed);
-  cout << "evolving..."; cout.flush();
   while(!ga.done()) {
     ga.step();
-    if(ga.generation() % 10 == 0) {
-      cout << ga.generation() << " "; cout.flush();
-    }
   }
 
   genome = ga.statistics().bestIndividual();
-  cout << "the shortest path found is " << genome.score() << "\n";
-  cout << "this is the distance from the sequence\n";
-  cout << genome << "\n\n";
   float od = 0;
   int cnt = 0;
   licz(genome, cnt, od);
-  cout<< "Odchylenie=" << od << ", ilosc=" << cnt << endl;
-  cout<< "Odchylenie max=" << odchylenie_max << endl;
-  cout<<m1<<endl<<m2<<endl<<m3<<endl;
-  cout<<"pole"<<pole(m1, m2, m3)/2.<<endl<<len/3.<<endl;
+  cout<< "\n\nOdchylenie=" << od << ", ilosc=" << cnt << endl<<endl;
   save_output(genome);
-  cout << ga.statistics() << "\n";	
 
   return 0;
 }
@@ -117,7 +105,7 @@ float Objective(GAGenome & g)
 	int cnt = 0;
 	licz(g, cnt, odchylenie);
   
-  float fitness = (len/3.-cnt)+(odchylenie/p_max*(len/3.));
+  float fitness = (len/3.-cnt)+(odchylenie/p_max*(len*1.5));
   if (fitness != fitness)
 	  return len*100;
   return fitness;
@@ -223,7 +211,6 @@ void licz(GAGenome & g, int& cnt, float& odchylenie){
 	}
 	odchylenie=sqrt(sum/cnt);
 	if (odchylenie>odchylenie_max) {
-		cout<<"o="<< odchylenie<< "c=" <<cnt<<"max="<<*max_element(tab , tab + cnt)<<"min="<<*min_element(tab, tab+cnt)<<endl;
 		odchylenie_max=odchylenie;
 	}
   }
